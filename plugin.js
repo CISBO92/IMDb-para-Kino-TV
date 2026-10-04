@@ -1,6 +1,6 @@
 /**
- * Adaptación de Rating-Sync para el ecosistema de Kino TV
- * Desarrollado por CISBO92 - Código de Producción Estable
+ * Adaptación de Sincronizador de Metadatos IMDb para Kino TV
+ * Autor: CISBO92 - Código Estable de Producción
  */
 
 let omdbKey = "";
@@ -12,7 +12,7 @@ export async function init(settings) {
 export async function getHomeRows() {
   return [
     { id: "scifi_classics", title: "Ciencia Ficción Clásica" },
-    { id: "noir_films", title: "Cine Negro / Policial" }
+    { id: "noir_films", title: "Cine Negro y Policial" }
   ];
 }
 
@@ -39,7 +39,7 @@ export async function getHomeRowItems(rowId, page = 1) {
       hasMore: docs.length === 10
     };
   } catch (err) {
-    console.error("Error al cargar fila de videos:", err);
+    console.error("Error cargando el catálogo:", err);
     return { items: [], hasMore: false };
   }
 }
@@ -106,7 +106,7 @@ export async function resolveStream(itemId) {
   const videoFile = data.files.find(f => f.name.endsWith(".mp4") || f.name.endsWith(".h264"));
   
   if (!videoFile) {
-    throw new Error("No se encontró un formato de video compatible.");
+    throw new Error("Formato de video no compatible en esta ficha.");
   }
 
   const directStreamUrl = `https://archive.org{itemId}/${videoFile.name}`;
