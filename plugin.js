@@ -1,37 +1,42 @@
 /**
  * Adaptación de Rating-Sync para el ecosistema de Kino TV
- * Desarrollado por CISBO92 (2026)
+ * Desarrollado por CISBO92 - Código de Producción Estable
  */
 
 let omdbKey = "";
 
-// Inicialización: Lee la API Key que el usuario guardó en los ajustes de Kino
 export async function init(settings) {
   omdbKey = settings.omdb_api_key || "";
 }
 
-// Define las secciones del menú principal de tu plugin
 export async function getHomeRows() {
   return [
-    { id: "peliculas_destacadas", title: "Catálogo de Video" }
+    { id: "scifi_classics", title: "Ciencia Ficción Clásica" },
+    { id: "noir_films", title: "Cine Negro / Policial" }
   ];
 }
 
-// Obtiene los elementos de cada fila (Debes conectar esto a tu API de videos real)
 export async function getHomeRowItems(rowId, page = 1) {
+  let searchQuery = "collection:(scifi) AND mediatype:(movies)";
+  if (rowId === "noir_films") {
+    searchQuery = "collection:(film_noir) AND mediatype:(movies)";
+  }
+
+  const archiveUrl = `https://archive.org{encodeURIComponent(searchQuery)}&fl=identifier,title,year&rows=10&page=${page}&output=json`;
+  
   try {
-    // REEMPLAZA ESTA URL con la de tu servidor de contenido real si tienes uno
-    const res = await fetch(`https://mi-fuente-de-video.com{page}`);
+    const res = await fetch(archiveUrl);
     const data = await res.json();
+    const docs = data.response.docs || [];
 
     return {
-      items: data.results.map(item => ({
-        id: item.id,
-        title: item.title,
-        poster: item.poster_url,
+      items: docs.map(doc => ({
+        id: doc.identifier,
+        title: doc.title,
+        poster: `https://archive.org{doc.identifier}`,
         type: "movie"
       })),
-      hasMore: data.page < data.total_pages
+      hasMore: docs.length === 10
     };
   } catch (err) {
     console.error("Error al cargar fila de videos:", err);
@@ -39,12 +44,12 @@ export async function getHomeRowItems(rowId, page = 1) {
   }
 }
 
-// Función auxiliar: Consulta OMDb y extrae las notas de IMDb y Rotten Tomatoes
 async function fetchExternalRatings(title, year = "") {
   if (!omdbKey) return null;
 
   try {
-    const url = `https://omdbapi.com{encodeURIComponent(title)}&y=${year}&apikey=${omdbKey}`;
+    const cleanTitle = title.replace(/\([^)]*\)/g, "").trim();
+    const url = `https://omdbapi.com{encodeURIComponent(cleanTitle)}&y=${year}&apikey=${omdbKey}`;
     const response = await fetch(url);
     const data = await response.json();
 
@@ -53,7 +58,6 @@ async function fetchExternalRatings(title, year = "") {
     let imdbRating = data.imdbRating || "N/A";
     let rtRating = "N/A";
 
-    // Extrae la puntuación de Rotten Tomatoes del array secundario de OMDb
     if (data.Ratings && Array.isArray(data.Ratings)) {
       const rtSource = data.Ratings.find(r => r.Source === "Rotten Tomatoes");
       if (rtSource) rtRating = rtSource.Value;
@@ -66,39 +70,49 @@ async function fetchExternalRatings(title, year = "") {
   }
 }
 
-// Inyecta las calificaciones de forma dinámica en la ficha técnica de Kino TV
 export async function getItemDetails(itemId) {
-  // 1. Obtiene los metadatos base de tu servidor de video
-  const res = await fetch(`https://mi-fuente-de-video.com{itemId}`);
-  const mediaItem = await res.json();
+  const metadataUrl = `https://archive.org{itemId}`;
+  const res = await fetch(metadataUrl);
+  const data = await res.json();
+  const info = data.metadata;
 
-  // 2. Busca las notas correspondientes en OMDb
-  const scores = await fetchExternalRatings(mediaItem.title, mediaItem.release_year);
+  const title = info.title || "Película Clásica";
+  const year = info.year || "";
+  const description = info.description || "Sin descripción disponible.";
 
-  // 3. Modifica la descripción para mostrar las puntuaciones arriba del texto base
-  let enhancedDescription = mediaItem.summary || "";
+  const scores = await fetchExternalRatings(title, year);
+
+  let enhancedDescription = description;
   if (scores) {
     enhancedDescription = `⭐ IMDb: ${scores.imdb}/10 | 🍅 Rotten Tomatoes: ${scores.rt}\n\n${enhancedDescription}`;
   }
 
   return {
-    id: mediaItem.id,
-    title: mediaItem.title,
+    id: itemId,
+    title: title,
     description: enhancedDescription,
-    year: parseInt(mediaItem.release_year) || 0,
-    background: mediaItem.backdrop_url,
-    poster: mediaItem.poster_url,
+    year: parseInt(year) || 0,
+    background: `https://archive.org{itemId}`,
+    poster: `https://archive.org{itemId}`,
     seasons: null 
   };
 }
 
-// Resuelve el streaming directo hacia el reproductor nativo de Kino
 export async function resolveStream(itemId) {
-  const res = await fetch(`https://mi-fuente-de-video.com{itemId}`);
-  const streamData = await res.json();
+  const metadataUrl = `https://archive.org{itemId}`;
+  const res = await fetch(metadataUrl);
+  const data = await res.json();
+  
+  const videoFile = data.files.find(f => f.name.endsWith(".mp4") || f.name.endsWith(".h264"));
+  
+  if (!videoFile) {
+    throw new Error("No se encontró un formato de video compatible.");
+  }
+
+  const directStreamUrl = `https://archive.org{itemId}/${videoFile.name}`;
 
   return {
-    url: streamData.url,
+    url: directStreamUrl,
     headers: {
       "User-Agent": "KinoPlayer/1.0"
     }
