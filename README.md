@@ -5,7 +5,7 @@ Este plugin adapta el concepto de sincronización de metadatos de plataformas de
 ## Instalación en Kino
 1. Abre Kino TV en tu dispositivo móvil o Android TV / Fire TV.
 2. Dirígete a **Ajustes > Plugins > Agregar**.
-3. Introduce la dirección de este repositorio: `CISBO92/NOMBRE_DE_TU_REPOSITORIO`
+3. Introduce la dirección de este repositorio: https://github.com/CISBO92/Sincronizador-de-Notas-IMDb-para-Kino-TV.git
 4. Guarda los cambios para activar el catálogo.
 
 ## Configuración Obligatoria
