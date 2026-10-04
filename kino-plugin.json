@@ -2,7 +2,7 @@
   "id": "com.cisbo92.imdb-para-kino-tv",
   "name": "Sincronizador de Notas IMDb",
   "version": "1.0.0",
-  "description": "Explora películas de dominio público enriquecidas con las notas de IMDb y puntuaciones de Rotten Tomatoes mediante OMDb.",
+  "description": "Catalogo de películas de dominio público enriquecido dinámicamente con puntuaciones de IMDb y Rotten Tomatoes a través de OMDb.",
   "icon": "https://archive.org",
   "permissions": {
     "networks": [
