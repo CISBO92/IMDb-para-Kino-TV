@@ -1,13 +1,14 @@
 {
-  "id": "com.cisbo92.kino-rating-sync",
+  "id": "com.cisbo92.imdb-para-kino-tv",
   "name": "Sincronizador de Notas IMDb",
   "version": "1.0.0",
-  "description": "Enriquece las descripciones de tus películas mostrando las notas de IMDb y puntuaciones de Rotten Tomatoes mediante la API de OMDb.",
-  "icon": "https://githubusercontent.com",
+  "description": "Explora películas de dominio público enriquecidas con las notas de IMDb y puntuaciones de Rotten Tomatoes mediante OMDb.",
+  "icon": "https://archive.org",
   "permissions": {
     "networks": [
-      "*.omdbapi.com",
-      "://mi-fuente-de-video.com"
+      "archive.org",
+      "*.archive.org",
+      "*.omdbapi.com"
     ]
   },
   "settings": [
